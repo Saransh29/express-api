@@ -1,7 +1,6 @@
 const User = require("../mongodb/User");
 const Post = require("../mongodb/Post");
 
-
 class PostController {
   static async createPost(req, res) {
     const { title, content } = req.body;
@@ -20,8 +19,15 @@ class PostController {
     }
   }
   static async getMyPosts(req, res) {
+    const page = Number(req.query.page) || 1;
+    const size = Number(req.query.size) || 10;
+    const sort = req.query.sort || "createdAt";
+
     try {
-      const posts = await Post.find({ author: req.userId });
+      const posts = await Post.find({ author: req.userId })
+        .sort(sort)
+        .skip((page - 1) * size)
+        .limit(size);
       res.status(200).json(posts);
     } catch (err) {
       res.status(500).json({ error: err });
